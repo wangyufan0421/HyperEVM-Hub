@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Project X",
+    "slug": "",
+    "categories": ["DEX", "DeFi"],
+    "status": "Live",
+    "shortDescription": "一句话简介",
+    "websiteUrl": "https://example.com",
+    "logoUrl": "",
+    "twitterUrl": "",
+    "discordUrl": "",
+    "docsUrl": "",
+    "longDescription": "项目介绍",
+    "coreFeatures": ["功能一", "功能二"],
+    "targetUsers": ["用户一", "用户二"],
+    "riskNotes": ["风险一", "风险二"],
+    "isFeatured": false,
+    "featuredOrder": null
+  }
+]

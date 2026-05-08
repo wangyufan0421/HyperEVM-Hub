@@ -1,0 +1,4 @@
+name,slug,categories,status,shortDescription,websiteUrl,logoUrl,twitterUrl,discordUrl,docsUrl,longDescription,coreFeatures,targetUsers,riskNotes,isFeatured,featuredOrder
+项目名称,项目链接名可留空自动生成,项目分类必填可多选(DeFi/DEX/Bridge/NFT/Wallet/Infra/Stable/HIP-3/HIP-4，多个用英文分号分隔),项目状态必填,一句话简介必填,官网链接必填,Logo图片链接可选,Twitter或X链接可选,Discord链接可选,文档链接可选,项目长简介可选,核心功能多个用英文分号分隔,适合谁使用多个用英文分号分隔,风险提示多个用英文分号分隔,是否精选true或false,精选排序数字可留空
+Project X,project-x,DEX;DeFi,Live,HyperEVM 上的去中心化交易项目,https://example.com,https://example.com/logo.png,https://x.com/projectx,https://discord.gg/projectx,https://docs.example.com,Project X 是一个面向 HyperEVM 用户的去中心化交易产品。,Swap;Liquidity;Routing,交易用户;流动性提供者,智能合约风险;市场波动风险,false,
+HyperLend,hyperlend,DeFi;HIP-3,Beta,HyperEVM 上的借贷协议,https://hyperlend.example,,,,https://docs.hyperlend.example,HyperLend 提供资产存借与抵押借贷功能。,Deposit;Borrow;Collateral,借款用户;收益用户,清算风险;利率波动风险,false,

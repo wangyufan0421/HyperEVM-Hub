@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  logoFile         String?
+  logoUrl          String?
+  category         String
+  categories       String   @default("[]")
+  tags             String   @default("[]")
+  status           String
+  shortDescription String
+  longDescription  String?
+  coreFeatures     String   @default("[]")
+  targetUsers      String   @default("[]")
+  riskNotes        String   @default("[]")
+  websiteUrl       String
+  twitterUrl       String?
+  discordUrl       String?
+  docsUrl          String?
+  isFeatured       Boolean  @default(false)
+  featuredOrder    Int?
+  isDeleted        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  @@index([isDeleted])
+  @@index([category])
+  @@index([status])
+}
+
+model SiteSettings {
+  id              String   @id @default(cuid())
+  siteName        String
+  siteDescription String
+  seoTitle        String
+  seoDescription  String
+  sidebarLogoFile String?
+  sidebarLogoUrl  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
