@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  findBestProjectSearchMatch,
   getCategoryCounts,
   getDirectoryEmptyState,
   sortDirectoryProjects,
@@ -45,7 +46,7 @@ const projects: DirectoryProject[] = [
 ];
 
 describe("project directory helpers", () => {
-  it("默认按名称 A-Z 排序", () => {
+  it("sorts by project name A-Z by default", () => {
     const sorted = sortDirectoryProjects(projects, "name-asc");
     assert.deepEqual(
       sorted.map((item) => item.name),
@@ -53,7 +54,7 @@ describe("project directory helpers", () => {
     );
   });
 
-  it("支持按最新添加排序", () => {
+  it("sorts by newest created first", () => {
     const sorted = sortDirectoryProjects(projects, "created-desc");
     assert.deepEqual(
       sorted.map((item) => item.name),
@@ -61,7 +62,7 @@ describe("project directory helpers", () => {
     );
   });
 
-  it("支持按最近更新排序", () => {
+  it("sorts by recently updated first", () => {
     const sorted = sortDirectoryProjects(projects, "updated-desc");
     assert.deepEqual(
       sorted.map((item) => item.name),
@@ -69,19 +70,29 @@ describe("project directory helpers", () => {
     );
   });
 
-  it("可统计分类项目数量", () => {
+  it("counts projects by category", () => {
     const counts = getCategoryCounts(projects);
     assert.equal(counts.DeFi, 2);
     assert.equal(counts.DEX, 1);
   });
 
-  it("无项目时返回无项目空状态", () => {
+  it("returns the no projects empty state", () => {
     const state = getDirectoryEmptyState([], false);
     assert.equal(state, "no-projects");
   });
 
-  it("筛选无结果时返回无结果空状态", () => {
+  it("returns the no results empty state", () => {
     const state = getDirectoryEmptyState([], true);
     assert.equal(state, "no-results");
+  });
+
+  it("finds an exact project match by name or slug", () => {
+    assert.equal(findBestProjectSearchMatch(projects, "alpha")?.slug, "alpha");
+    assert.equal(findBestProjectSearchMatch(projects, "BETA")?.slug, "beta");
+  });
+
+  it("finds a single partial project match but ignores ambiguous partial matches", () => {
+    assert.equal(findBestProjectSearchMatch(projects, "alp")?.slug, "alpha");
+    assert.equal(findBestProjectSearchMatch(projects, "a"), null);
   });
 });

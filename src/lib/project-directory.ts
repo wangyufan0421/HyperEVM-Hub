@@ -59,3 +59,24 @@ export function getDirectoryEmptyState(
 
   return "no-projects";
 }
+
+function normalizeSearchText(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export function findBestProjectSearchMatch(projects: DirectoryProject[], query: string): DirectoryProject | null {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  const exactMatch = projects.find((project) => {
+    return normalizeSearchText(project.name) === normalizedQuery || normalizeSearchText(project.slug) === normalizedQuery;
+  });
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const partialMatches = projects.filter((project) => normalizeSearchText(project.name).includes(normalizedQuery));
+  return partialMatches.length === 1 ? partialMatches[0] : null;
+}

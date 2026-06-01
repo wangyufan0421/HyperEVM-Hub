@@ -1,6 +1,10 @@
-import { ProjectCard } from "@/components/project-card";
+﻿import { HomeMarketSection } from "@/components/home-market-section/home-market-section";
+import { HomeSearchForm } from "@/components/home-search-form";
 import { SiteSidebar } from "@/components/site-sidebar";
+import { getHyperEvmEcosystemMetrics } from "@/lib/defillama-ecosystem";
+import { isHypeRange, type HypeRange } from "@/lib/hype-market";
 import { getCategoryCounts, type DirectoryProject } from "@/lib/project-directory";
+import { getHypeMarketData } from "@/lib/hype-market-service";
 import { prisma } from "@/lib/prisma";
 import { listPublicProjects } from "@/lib/public-projects";
 import { buildSidebarCategories } from "@/lib/sidebar-categories";
@@ -30,18 +34,30 @@ function toDirectoryProject(project: Awaited<ReturnType<typeof listPublicProject
   };
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<{ hypeRange?: string | string[] }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const rawRequestedRange = Array.isArray(resolvedSearchParams?.hypeRange)
+    ? resolvedSearchParams?.hypeRange[0]
+    : resolvedSearchParams?.hypeRange;
+  const requestedRange = rawRequestedRange ?? null;
+  let selectedHypeRange: HypeRange = "1D";
+  if (isHypeRange(requestedRange)) {
+    selectedHypeRange = requestedRange;
+  }
   const dbProjects = await listPublicProjects();
   const projects = dbProjects.map(toDirectoryProject);
-  const featuredProjects = dbProjects
-    .filter((project) => project.isFeatured)
-    .sort((a, b) => (a.featuredOrder ?? 9999) - (b.featuredOrder ?? 9999) || a.name.localeCompare(b.name))
-    .slice(0, 8)
-    .map(toDirectoryProject);
 
   const categoryCounts = getCategoryCounts(projects);
   const sidebarCategories = buildSidebarCategories(categoryCounts);
   const siteSettings = await createSiteSettingsService(prisma).getSettings();
+  const [initialHypeMarketData, ecosystemMetrics] = await Promise.all([
+    getHypeMarketData(selectedHypeRange).catch(() => null),
+    getHyperEvmEcosystemMetrics().catch(() => null),
+  ]);
   const brand = resolveSidebarBrand({
     siteName: siteSettings.siteName,
     sidebarLogoFile: siteSettings.sidebarLogoFile ?? null,
@@ -60,14 +76,7 @@ export default async function Home() {
 
       <section className="min-w-0 flex-1 p-4 sm:p-6 lg:p-7">
         <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <form action="/projects" className="w-full max-w-[420px]" method="get">
-            <input
-              className="h-11 w-full rounded-full border border-[#06393424] bg-white/90 px-5 text-[14px] font-semibold text-[#072b28] shadow-[0_10px_24px_rgba(9,185,156,0.06)] outline-none transition focus:border-[#09b99c8c] focus:shadow-[0_0_0_4px_rgba(142,245,220,0.26)]"
-              name="query"
-              placeholder="搜索项目名称，回车进入项目页"
-              type="search"
-            />
-          </form>
+          <HomeSearchForm />
 
           <div className="flex flex-wrap gap-2 text-[13px] font-bold text-[#335650]">
             <span className="rounded-full border border-[#06393424] bg-white/70 px-3 py-2">
@@ -80,8 +89,13 @@ export default async function Home() {
         </div>
 
         <section
-          className="relative min-h-[470px] overflow-hidden rounded-[30px] border border-[#09b99c38] bg-cover bg-center shadow-[0_26px_80px_rgba(0,108,116,0.18),inset_0_0_0_1px_rgba(255,255,255,0.45)]"
-          style={{ backgroundImage: "url('/hyper-map.png')" }}
+          className="relative min-h-[470px] overflow-hidden rounded-[30px] border border-[#09b99c38] shadow-[0_26px_80px_rgba(0,108,116,0.18),inset_0_0_0_1px_rgba(255,255,255,0.45)]"
+          style={{
+            backgroundImage: "url('/hyper-map.png')",
+            backgroundPosition: "center bottom",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
         >
           <div className="flex min-h-[470px] w-full items-center px-7 py-8 sm:px-12">
             <div className="w-full max-w-[600px] rounded-[28px] border border-[#09b99c33] bg-[#f6fffb]/85 px-8 py-10 shadow-[0_22px_70px_rgba(4,65,58,0.18),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-md sm:px-11 sm:py-11">
@@ -103,40 +117,22 @@ export default async function Home() {
                 </Link>
                 <a
                   className="inline-flex h-11 items-center justify-center rounded-full border border-[#06393429] bg-white/80 px-5 text-[14px] font-black text-[#06342f] transition hover:-translate-y-0.5 hover:bg-white"
-                  href="#featured-projects"
+                  href="#market-overview"
                 >
-                  查看精选项目
+                  查看实时数据
                 </a>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mt-8" id="featured-projects">
-          <div className="mb-4 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-[24px] font-black leading-tight text-[#072b28]">精选项目</h2>
-              <p className="mt-1 text-[14px] font-bold text-[#58726d]">
-                由后台勾选精选后展示，卡片会使用已保存的项目 Logo。
-              </p>
-            </div>
-            <Link className="text-[14px] font-black text-[#0a6f64] transition hover:text-[#06342f]" href="/projects">
-              查看全部
-            </Link>
-          </div>
-
-          {featuredProjects.length > 0 ? (
-            <ul className="grid grid-cols-1 gap-3.5 lg:grid-cols-2 xl:grid-cols-4">
-              {featuredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </ul>
-          ) : (
-            <div className="rounded-[22px] border border-dashed border-[#06393424] bg-white/70 p-8 text-[14px] font-bold text-[#58726d]">
-              暂无精选项目。你可以在后台项目管理中勾选精选后显示在这里。
-            </div>
-          )}
-        </section>
+        <div id="market-overview">
+          <HomeMarketSection
+            ecosystemMetrics={ecosystemMetrics}
+            initialHypeMarketData={initialHypeMarketData}
+            selectedHypeRange={selectedHypeRange}
+          />
+        </div>
 
         <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 sm:bottom-6 sm:right-6">
           <a
