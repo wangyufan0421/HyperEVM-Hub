@@ -357,9 +357,6 @@ export function Hip3Dashboard({ data, error }: { data: Hip3DashboardData | null;
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-[28px] font-black leading-tight text-[#052c28] sm:text-[34px]">HIP-3 生态总览</h1>
-            <p className="mt-2 max-w-3xl text-[13px] font-bold leading-6 text-[#567973]">
-              汇总 HIP-3 市场的累计成交量、DEX 活跃度、未平仓量和 Builder 路由贡献。
-            </p>
           </div>
           <RefreshCountdown cacheExpiresAt={data.cacheExpiresAt} />
         </div>
