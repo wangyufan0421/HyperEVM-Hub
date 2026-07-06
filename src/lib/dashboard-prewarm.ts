@@ -2,7 +2,11 @@ import { refreshHyperEvmTvlDashboardData } from "@/lib/defillama-hyperevm-tvl";
 import { refreshHip3DashboardData } from "@/lib/flowscan-hip3";
 import { refreshHypeBuybackDashboardData } from "@/lib/hype-buyback";
 import { refreshHypeEtfDashboardData } from "@/lib/hype-etf";
+import { refreshHypeFundingDashboardData } from "@/lib/hype-funding";
 import { refreshHip4DashboardData } from "@/lib/loris-hip4";
+import { refreshLiminalDashboardData } from "@/lib/liminal";
+import { refreshPrjxDashboardData } from "@/lib/prjx";
+import { refreshTradeXyzDashboardData } from "@/lib/tradexyz";
 
 const PREWARM_INTERVAL_MS = 55 * 60 * 1000;
 
@@ -37,6 +41,10 @@ export async function refreshDashboards(): Promise<DashboardRefreshSummary> {
   const dashboards = [
     { name: "hype-etf", refresh: refreshHypeEtfDashboardData },
     { name: "hype-buyback", refresh: refreshHypeBuybackDashboardData },
+    { name: "hype-funding", refresh: refreshHypeFundingDashboardData },
+    { name: "prjx", refresh: refreshPrjxDashboardData },
+    { name: "tradexyz", refresh: refreshTradeXyzDashboardData },
+    { name: "liminal", refresh: refreshLiminalDashboardData },
     { name: "hyperevm-tvl", refresh: refreshHyperEvmTvlDashboardData },
     { name: "hip-3", refresh: refreshHip3DashboardData },
     { name: "hip-4", refresh: refreshHip4DashboardData },

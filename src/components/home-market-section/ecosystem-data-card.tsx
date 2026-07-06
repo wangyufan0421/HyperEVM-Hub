@@ -21,9 +21,9 @@ function formatUsdCompact(value: number | null) {
 
 function MetricTile({ label, value }: MetricItem) {
   return (
-    <div className="rounded-[8px] border border-[#0e3f3a18] bg-[#f8fffc]/86 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-      <p className="text-[11px] font-black uppercase tracking-normal text-[#6b837e]">{label}</p>
-      <p className="mt-3 font-mono text-[24px] font-black leading-none text-[#063934] sm:text-[26px]">
+    <div className="ui-card-quiet p-4">
+      <p className="eyebrow text-[10px]">{label}</p>
+      <p className="num mt-3 text-[24px] font-semibold leading-none text-[color:var(--text)] sm:text-[26px]">
         {formatUsdCompact(value)}
       </p>
     </div>
@@ -40,22 +40,22 @@ export function EcosystemDataCard({ metrics }: { metrics: HyperEvmEcosystemMetri
   ];
 
   return (
-    <section className="min-h-[420px] rounded-[8px] border border-[#0e3f3a24] bg-[#f1fffb]/88 p-5 text-[#063934] shadow-[0_18px_50px_rgba(7,43,40,0.10)] backdrop-blur-md sm:p-6">
+    <section className="ui-card min-h-[390px] p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[12px] font-black uppercase tracking-normal text-[#0a8f7d]">HyperEVM 生态</p>
-          <h2 className="mt-2 text-[24px] font-black leading-tight text-[#062d29]">HyperEVM 生态数据</h2>
+          <p className="eyebrow">生态数据</p>
+          <h2 className="mt-2 text-[24px] font-semibold leading-tight text-[color:var(--text)]">生态数据</h2>
+          <p className="mt-2 text-[13px] font-medium text-[color:var(--text-mute)]">
+            聚合公开市场数据中的费用、收入和交易量信号。
+          </p>
         </div>
+        <span className="ui-button h-8 text-[12px]">DefiLlama</span>
       </div>
 
-      <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {items.map((item) => (
           <MetricTile key={item.label} {...item} />
         ))}
-      </div>
-
-      <div className="mt-4 border-t border-[#0e3f3a14] pt-4 text-[12px] font-bold text-[#6b837e]">
-        <span>Source: DefiLlama free API</span>
       </div>
     </section>
   );

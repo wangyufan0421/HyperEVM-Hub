@@ -51,7 +51,7 @@ export type ProjectStatus = (typeof PROJECT_STATUS)[number];
 
 export const STATUS_LABELS_ZH: Record<ProjectStatus, string> = {
   Live: "运行中",
-  Beta: "测试版",
+  Beta: "Beta",
   Testnet: "测试网",
   "Coming Soon": "即将上线",
   Inactive: "已停用",

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 const siteSettings = {
   siteName: "HyperEVM Hub",
-  siteDescription: "中文 HyperEVM 生态项目目录站",
+  siteDescription: "HyperEVM 生态项目、数据与协议情报中心",
   seoTitle: "",
   seoDescription: "",
 };

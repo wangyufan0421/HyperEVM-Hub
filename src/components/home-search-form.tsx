@@ -32,14 +32,35 @@ export function HomeSearchForm() {
   }
 
   return (
-    <form action="/search" className="w-full max-w-[420px]" method="get" onSubmit={handleSubmit}>
+    <form
+      action="/search"
+      className="command-search mx-auto flex h-12 w-full max-w-[650px] items-center gap-3 px-4"
+      method="get"
+      onSubmit={handleSubmit}
+    >
+      <svg aria-hidden="true" className="h-4 w-4 shrink-0 text-[color:var(--text-dim)]" fill="none" viewBox="0 0 20 20">
+        <path
+          d="m14.2 14.2 3.3 3.3M8.8 15.1a6.3 6.3 0 1 1 0-12.6 6.3 6.3 0 0 1 0 12.6Z"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="1.7"
+        />
+      </svg>
       <input
-        className="h-11 w-full rounded-full border border-[#06393424] bg-white/90 px-5 text-[14px] font-semibold text-[#072b28] shadow-[0_10px_24px_rgba(9,185,156,0.06)] outline-none transition focus:border-[#09b99c8c] focus:shadow-[0_0_0_4px_rgba(142,245,220,0.26)]"
+        className="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[color:var(--text)] outline-none placeholder:text-[color:var(--text-dim)]"
         name="query"
         onKeyDown={handleKeyDown}
-        placeholder="搜索项目名称，回车进入项目页"
+        placeholder="Search HyperEVM — projects, dashboards, protocols..."
         type="search"
       />
+      <span className="hidden items-center gap-1 sm:flex">
+        <kbd className="rounded-[5px] border border-[color:var(--line)] bg-white/70 px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--text-dim)]">
+          Ctrl
+        </kbd>
+        <kbd className="rounded-[5px] border border-[color:var(--line)] bg-white/70 px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--text-dim)]">
+          K
+        </kbd>
+      </span>
     </form>
   );
 }

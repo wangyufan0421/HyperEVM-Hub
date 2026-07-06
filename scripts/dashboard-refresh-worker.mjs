@@ -1,7 +1,16 @@
 const DEFAULT_BASE_URL = "http://localhost:3000";
 const REFRESH_INTERVAL_MS = 55 * 60 * 1000;
 const READY_TIMEOUT_MS = 3 * 60 * 1000;
-const DASHBOARD_PAGE_PATHS = ["/dashboard/hype-etf", "/dashboard/hype-buyback", "/dashboard/hyperevm-tvl", "/dashboard/hip-3", "/dashboard/hip-4"];
+const DASHBOARD_PAGE_PATHS = [
+  "/dashboard/hype-etf",
+  "/dashboard/hype-buyback",
+  "/dashboard/hyperevm-tvl",
+  "/dashboard/hip-3",
+  "/dashboard/hip-4",
+  "/dashboard/prjx",
+  "/projects/tradexyz",
+  "/projects/liminal",
+];
 
 const baseUrl = process.env.DASHBOARD_REFRESH_URL ?? DEFAULT_BASE_URL;
 const secret = process.env.DASHBOARD_REFRESH_SECRET;

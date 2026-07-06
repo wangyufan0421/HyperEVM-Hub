@@ -24,7 +24,7 @@ function InlineTooltip({ lines }: { lines: string[] }) {
   return (
     <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden min-w-[190px] -translate-x-1/2 rounded-[8px] bg-[#062d29] px-3 py-2 text-left font-mono text-[12px] font-black text-white shadow-[0_12px_30px_rgba(6,45,41,0.24)] group-hover:block">
       {lines.map((line, index) => (
-        <span className={index === 0 ? "block text-[11px] text-[#b8efe4]" : "mt-1 block"} key={`${line}-${index}`}>
+        <span className={index === 0 ? "block text-[12px] text-[#b8efe4]" : "mt-1.5 block"} key={`${line}-${index}`}>
           {line}
         </span>
       ))}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { DASHBOARD_NAV_ITEMS, SIDEBAR_BRAND_NAME, SIDEBAR_CATEGORIES } from "./sidebar-config";
+import { DASHBOARD_NAV_ITEMS, PROJECT_NAV_ITEMS, SIDEBAR_BRAND_NAME, SIDEBAR_CATEGORIES } from "./sidebar-config";
 
 describe("sidebar config", () => {
   it("keeps the HyperEVM ecosystem category set", () => {
@@ -28,6 +28,14 @@ describe("sidebar config", () => {
       { label: "HyperEVM TVL 排行", href: "/dashboard/hyperevm-tvl" },
       { label: "HIP-3 数据面板", href: "/dashboard/hip-3" },
       { label: "HIP-4 数据面板", href: "/dashboard/hip-4" },
+    ]);
+  });
+  it("places Project X under the Projects navigation group", () => {
+    assert.deepEqual(PROJECT_NAV_ITEMS, [
+      { label: "全部项目", href: "/projects" },
+      { label: "Project X", href: "/projects/prjx" },
+      { label: "tradeXYZ", href: "/projects/tradexyz" },
+      { label: "Liminal", href: "/projects/liminal" },
     ]);
   });
 });

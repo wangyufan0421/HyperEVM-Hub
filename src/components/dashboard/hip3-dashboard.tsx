@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { RefreshCountdown } from "./refresh-countdown";
 
-const DEX_COLORS = ["#27c7b4", "#76d3c3", "#ff8f6c", "#f2c85b", "#75a7ff", "#ec6ecb", "#8f82ff"];
+const DEX_COLORS = ["#0d9c89", "#73cbbc", "#ff8f6c", "#f2c85b", "#75a7ff", "#d66ac2", "#8f82ff"];
 
 type ChartTooltip = {
   lines: string[];
@@ -49,12 +49,10 @@ function formatDateLabel(value: string) {
 }
 
 function SvgTooltip({ tooltip, width }: { tooltip: ChartTooltip | null; width: number }) {
-  if (!tooltip) {
-    return null;
-  }
+  if (!tooltip) return null;
 
-  const tooltipWidth = 196;
-  const tooltipHeight = 24 + tooltip.lines.length * 16;
+  const tooltipWidth = 236;
+  const tooltipHeight = 30 + tooltip.lines.length * 20;
   const x = Math.min(Math.max(tooltip.x - tooltipWidth / 2, 8), width - tooltipWidth - 8);
   const y = Math.max(8, tooltip.y - tooltipHeight - 12);
 
@@ -65,11 +63,11 @@ function SvgTooltip({ tooltip, width }: { tooltip: ChartTooltip | null; width: n
         <text
           fill={index === 0 ? "#b8efe4" : "#ffffff"}
           fontFamily="monospace"
-          fontSize={index === 0 ? "11" : "13"}
-          fontWeight="900"
+          fontSize={index === 0 ? "13" : "15"}
+          fontWeight="700"
           key={`${line}-${index}`}
-          x={x + 12}
-          y={y + 18 + index * 16}
+          x={x + 14}
+          y={y + 22 + index * 20}
         >
           {line}
         </text>
@@ -80,9 +78,9 @@ function SvgTooltip({ tooltip, width }: { tooltip: ChartTooltip | null; width: n
 
 function InlineTooltip({ lines }: { lines: string[] }) {
   return (
-    <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden min-w-[170px] -translate-x-1/2 rounded-[8px] bg-[#062d29] px-3 py-2 text-left font-mono text-[12px] font-black text-white shadow-[0_12px_30px_rgba(6,45,41,0.24)] group-hover:block">
+    <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden min-w-[200px] -translate-x-1/2 rounded-[8px] bg-[#062d29] px-3.5 py-2.5 text-left text-[13px] font-semibold text-white shadow-[0_12px_30px_rgba(6,45,41,0.24)] group-hover:block">
       {lines.map((line, index) => (
-        <span className={index === 0 ? "block text-[11px] text-[#b8efe4]" : "mt-1 block"} key={`${line}-${index}`}>
+        <span className={index === 0 ? "block text-[12px] text-[#b8efe4]" : "mt-1.5 block"} key={`${line}-${index}`}>
           {line}
         </span>
       ))}
@@ -102,29 +100,27 @@ function ChartFrame(props: {
   footer?: ReactNode;
 }) {
   return (
-    <section className="rounded-[10px] border border-[#0e3f3a22] bg-[#f8fffc]/88 p-5 shadow-[0_18px_44px_rgba(7,43,40,0.08)] sm:p-6">
+    <section className="ui-card p-5 sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          {props.eyebrow ? <p className="text-[11px] font-black uppercase tracking-normal text-[#0b9482]">{props.eyebrow}</p> : null}
-          <h2 className="text-[22px] font-black leading-tight text-[#062d29] sm:text-[24px]">{props.title}</h2>
-          <p className="mt-1 text-[12px] font-bold leading-5 text-[#66817c]">{props.subtitle}</p>
+        <div className="min-w-0">
+          {props.eyebrow ? <p className="eyebrow">{props.eyebrow}</p> : null}
+          <h2 className="mt-1 text-[20px] font-semibold leading-tight text-[color:var(--text)] sm:text-[22px]">{props.title}</h2>
+          <p className="mt-1 max-w-[620px] text-[12px] font-medium leading-5 text-[color:var(--text-mute)]">{props.subtitle}</p>
         </div>
-        <span className="rounded-[8px] border border-[#0e3f3a20] bg-white/70 px-2.5 py-1 text-[11px] font-black text-[#53746e]">
-          ALL
-        </span>
+        <span className="ui-button h-8 text-[12px]">ALL</span>
       </div>
       {props.children}
-      {props.footer ? <div className="mt-4 border-t border-[#0e3f3a14] pt-4">{props.footer}</div> : null}
+      {props.footer ? <div className="mt-4 border-t border-[color:var(--line)] pt-4">{props.footer}</div> : null}
     </section>
   );
 }
 
 function MetricCard({ label, value, helper }: { label: string; value: string; helper: string }) {
   return (
-    <div className="rounded-[10px] border border-[#0e3f3a20] bg-[#fbfffd]/86 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-      <p className="text-[11px] font-black uppercase tracking-normal text-[#6b837e]">{label}</p>
-      <p className="mt-3 font-mono text-[24px] font-black leading-none text-[#063934] sm:text-[26px]">{value}</p>
-      <p className="mt-2 text-[11px] font-bold text-[#7a9690]">{helper}</p>
+    <div className="ui-card-quiet p-4">
+      <p className="eyebrow text-[10px]">{label}</p>
+      <p className="num mt-3 text-[24px] font-semibold leading-none text-[color:var(--text)] sm:text-[26px]">{value}</p>
+      <p className="mt-2 text-[11px] font-medium text-[color:var(--text-mute)]">{helper}</p>
     </div>
   );
 }
@@ -134,8 +130,8 @@ function AreaChart({ money = true, timeSeries }: { money?: boolean; timeSeries: 
   const values = sumSeriesValues(timeSeries);
   const dates = timeSeries.dates;
   const width = 860;
-  const height = 430;
-  const padding = { top: 10, right: 18, bottom: 30, left: 42 };
+  const height = 390;
+  const padding = { top: 12, right: 18, bottom: 30, left: 42 };
   const innerWidth = width - padding.left - padding.right;
   const innerHeight = height - padding.top - padding.bottom;
   const max = Math.max(...values, 1);
@@ -156,21 +152,27 @@ function AreaChart({ money = true, timeSeries }: { money?: boolean; timeSeries: 
   const formatAxisValue = money ? formatUsdCompact : formatCompact;
 
   return (
-    <svg aria-label="HIP-3 open interest area chart" className="h-[460px] w-full overflow-visible" role="img" viewBox={`0 0 ${width} ${height}`}>
+    <svg aria-label="HIP-3 area chart" className="h-[410px] w-full overflow-visible" role="img" viewBox={`0 0 ${width} ${height}`}>
+      <defs>
+        <linearGradient id="hip3-area-fill" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="rgba(13,156,137,0.22)" />
+          <stop offset="100%" stopColor="rgba(13,156,137,0)" />
+        </linearGradient>
+      </defs>
       {[0, 0.5, 1].map((tick) => {
         const y = padding.top + tick * innerHeight;
         const value = max - tick * range;
         return (
           <g key={tick}>
-            <line stroke="#dceee8" strokeDasharray="4 8" strokeWidth="1" x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
-            <text fill="#7a9690" fontSize="11" fontWeight="800" x="0" y={y + 4}>
+            <line stroke="rgba(8,54,49,0.12)" strokeDasharray="4 8" strokeWidth="1" x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
+            <text fill="rgba(8,43,40,0.54)" fontSize="11" fontWeight="700" x="0" y={y + 4}>
               {formatAxisValue(value)}
             </text>
           </g>
         );
       })}
-      <path d={area} fill="#d9f5ee" />
-      <polyline fill="none" points={line} stroke="#43bcae" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+      <path d={area} fill="url(#hip3-area-fill)" />
+      <polyline fill="none" points={line} stroke="#0d9c89" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" />
       {points.map((point, index) => (
         <circle
           cx={point.x}
@@ -183,9 +185,9 @@ function AreaChart({ money = true, timeSeries }: { money?: boolean; timeSeries: 
           stroke="transparent"
         />
       ))}
-      {points.length > 0 ? <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} fill="#063934" r="4" stroke="#8ef5dc" strokeWidth="3" /> : null}
+      {points.length > 0 ? <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} fill="white" r="4" stroke="#0d9c89" strokeWidth="2.4" /> : null}
       {labelIndexes.map((index) => (
-        <text fill="#55756f" fontSize="11" fontWeight="900" key={`${dates[index]}-${index}`} x={padding.left + (dates.length <= 1 ? 0 : (index / (dates.length - 1)) * innerWidth)} y={height - 6}>
+        <text fill="rgba(8,43,40,0.58)" fontSize="11" fontWeight="700" key={`${dates[index]}-${index}`} x={padding.left + (dates.length <= 1 ? 0 : (index / (dates.length - 1)) * innerWidth)} y={height - 6}>
           {formatDateLabel(dates[index])}
         </text>
       ))}
@@ -197,8 +199,8 @@ function AreaChart({ money = true, timeSeries }: { money?: boolean; timeSeries: 
 function StackedBarChart({ timeSeries }: { timeSeries: Hip3TimeSeries }) {
   const [tooltip, setTooltip] = useState<ChartTooltip | null>(null);
   const width = 860;
-  const height = 430;
-  const padding = { top: 10, right: 18, bottom: 30, left: 44 };
+  const height = 390;
+  const padding = { top: 12, right: 18, bottom: 30, left: 44 };
   const dateCount = timeSeries.dates.length;
   const valuesByDate = sumSeriesValues(timeSeries);
   const max = Math.max(...valuesByDate, 1);
@@ -208,14 +210,14 @@ function StackedBarChart({ timeSeries }: { timeSeries: Hip3TimeSeries }) {
   const labelIndexes = [0, Math.floor((dateCount - 1) / 2), dateCount - 1].filter((index, offset, list) => index >= 0 && list.indexOf(index) === offset);
 
   return (
-    <svg aria-label="HIP-3 daily volume stacked bar chart" className="h-[460px] w-full overflow-visible" role="img" viewBox={`0 0 ${width} ${height}`}>
+    <svg aria-label="HIP-3 daily volume stacked bar chart" className="h-[410px] w-full overflow-visible" role="img" viewBox={`0 0 ${width} ${height}`}>
       {[0, 0.5, 1].map((tick) => {
         const y = padding.top + tick * innerHeight;
         const value = max - tick * max;
         return (
           <g key={tick}>
-            <line stroke="#dceee8" strokeDasharray="4 8" strokeWidth="1" x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
-            <text fill="#7a9690" fontSize="11" fontWeight="800" x="0" y={y + 4}>
+            <line stroke="rgba(8,54,49,0.12)" strokeDasharray="4 8" strokeWidth="1" x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
+            <text fill="rgba(8,43,40,0.54)" fontSize="11" fontWeight="700" x="0" y={y + 4}>
               {formatUsdCompact(value)}
             </text>
           </g>
@@ -231,9 +233,7 @@ function StackedBarChart({ timeSeries }: { timeSeries: Hip3TimeSeries }) {
               const value = series.values[dateIndex] ?? 0;
               const barHeight = (value / max) * innerHeight;
               stackY -= barHeight;
-              if (barHeight <= 0) {
-                return null;
-              }
+              if (barHeight <= 0) return null;
 
               return (
                 <rect
@@ -242,7 +242,7 @@ function StackedBarChart({ timeSeries }: { timeSeries: Hip3TimeSeries }) {
                   key={series.name}
                   onMouseEnter={() => setTooltip({ lines: [date, `${series.name} ${formatUsdCompact(value)}`, `Total ${formatUsdCompact(valuesByDate[dateIndex] ?? 0)}`], x: x + barWidth / 2, y: stackY })}
                   onMouseLeave={() => setTooltip(null)}
-                  opacity={seriesIndex === 0 ? 0.95 : 0.86}
+                  opacity={seriesIndex === 0 ? 0.96 : 0.84}
                   rx="2"
                   width={barWidth}
                   x={x}
@@ -254,7 +254,7 @@ function StackedBarChart({ timeSeries }: { timeSeries: Hip3TimeSeries }) {
         );
       })}
       {labelIndexes.map((index) => (
-        <text fill="#55756f" fontSize="11" fontWeight="900" key={`${timeSeries.dates[index]}-${index}`} x={padding.left + (index / Math.max(dateCount - 1, 1)) * innerWidth} y={height - 6}>
+        <text fill="rgba(8,43,40,0.58)" fontSize="11" fontWeight="700" key={`${timeSeries.dates[index]}-${index}`} x={padding.left + (index / Math.max(dateCount - 1, 1)) * innerWidth} y={height - 6}>
           {formatDateLabel(timeSeries.dates[index])}
         </text>
       ))}
@@ -265,7 +265,7 @@ function StackedBarChart({ timeSeries }: { timeSeries: Hip3TimeSeries }) {
 
 function ChartLegend({ series }: { series: Hip3TimeSeries["series"] }) {
   return (
-    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-black text-[#53746e]">
+    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-semibold text-[color:var(--text-mute)]">
       {series.slice(0, DEX_COLORS.length).map((item, index) => (
         <span className="inline-flex items-center gap-1.5" key={item.name}>
           <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: DEX_COLORS[index % DEX_COLORS.length] }} />
@@ -280,12 +280,12 @@ function DexShareBars({ shares }: { shares: Hip3DexShare[] }) {
   return (
     <div className="space-y-3">
       {shares.slice(0, 7).map((share) => (
-        <div className="group relative grid grid-cols-[76px_1fr_58px] items-center gap-3 text-[12px] font-black" key={share.dex}>
-          <span className="text-[#244d48]">{share.dex}</span>
-          <span className="h-3 rounded-full bg-[#e3f3ef]">
-            <span className="block h-3 rounded-full bg-[#73cbbc]" style={{ width: `${Math.min(share.volumePct, 100)}%` }} />
+        <div className="group relative grid grid-cols-[76px_1fr_58px] items-center gap-3 text-[12px] font-semibold" key={share.dex}>
+          <span className="text-[color:var(--text-soft)]">{share.dex}</span>
+          <span className="h-2.5 rounded-full bg-[color:var(--surface-soft)]">
+            <span className="block h-2.5 rounded-full bg-[color:var(--mint)]" style={{ width: `${Math.min(share.volumePct, 100)}%` }} />
           </span>
-          <span className="text-right font-mono text-[#063934]">{formatPercent(share.volumePct)}</span>
+          <span className="num text-right text-[color:var(--text)]">{formatPercent(share.volumePct)}</span>
           <InlineTooltip lines={[share.dex, `Share ${formatPercent(share.volumePct)}`]} />
         </div>
       ))}
@@ -299,13 +299,13 @@ function TopMarkets({ markets }: { markets: Hip3MarketRank[] }) {
   return (
     <div className="space-y-2">
       {markets.map((market) => (
-        <div className="group relative grid grid-cols-[44px_76px_1fr_74px] items-center gap-2 text-[12px] font-black" key={`${market.dex}-${market.symbol}`}>
-          <span className="rounded-[6px] bg-[#e0fbf4] px-2 py-1 text-center text-[11px] text-[#087b6d]">{market.dex}</span>
-          <span className="truncate text-[#244d48]">{market.symbol}</span>
-          <span className="h-3 rounded-full bg-[#e3f3ef]">
-            <span className="block h-3 rounded-full bg-[#73cbbc]" style={{ width: `${Math.max(4, (market.oi / max) * 100)}%` }} />
+        <div className="group relative grid grid-cols-[44px_76px_1fr_74px] items-center gap-2 text-[12px] font-semibold" key={`${market.dex}-${market.symbol}`}>
+          <span className="rounded-[6px] bg-[color:var(--mint-soft)] px-2 py-1 text-center text-[11px] text-[color:var(--mint)]">{market.dex}</span>
+          <span className="truncate text-[color:var(--text-soft)]">{market.symbol}</span>
+          <span className="h-2.5 rounded-full bg-[color:var(--surface-soft)]">
+            <span className="block h-2.5 rounded-full bg-[color:var(--mint)]" style={{ width: `${Math.max(4, (market.oi / max) * 100)}%` }} />
           </span>
-          <span className="text-right font-mono text-[#063934]">{formatUsdCompact(market.oi)}</span>
+          <span className="num text-right text-[color:var(--text)]">{formatUsdCompact(market.oi)}</span>
           <InlineTooltip lines={[`${market.dex} ${market.symbol}`, `OI ${formatUsdCompact(market.oi)}`, `Volume ${formatUsdCompact(market.volume)}`]} />
         </div>
       ))}
@@ -319,16 +319,16 @@ function TopBuilders({ builders }: { builders: Hip3BuilderRank[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {builders.map((builder) => (
-        <div className="group relative rounded-[8px] border border-[#0e3f3a16] bg-[#effbf7]/82 p-3" key={builder.address || builder.name}>
+        <div className="group ui-card-quiet relative p-3" key={builder.address || builder.name}>
           <div className="flex items-center justify-between gap-3">
-            <p className="truncate text-[13px] font-black text-[#063934]">{builder.name}</p>
-            <span className="font-mono text-[12px] font-black text-[#087b6d]">{formatPercent(builder.builderShare)}</span>
+            <p className="truncate text-[13px] font-semibold text-[color:var(--text)]">{builder.name}</p>
+            <span className="num text-[12px] font-semibold text-[color:var(--mint)]">{formatPercent(builder.builderShare)}</span>
           </div>
-          <div className="mt-3 h-2 rounded-full bg-[#deeee9]">
-            <div className="h-2 rounded-full bg-[#43bcae]" style={{ width: `${Math.max(5, (builder.totalVolume / max) * 100)}%` }} />
+          <div className="mt-3 h-2 rounded-full bg-[color:var(--surface-soft)]">
+            <div className="h-2 rounded-full bg-[color:var(--mint)]" style={{ width: `${Math.max(5, (builder.totalVolume / max) * 100)}%` }} />
           </div>
           <InlineTooltip lines={[builder.name, `Volume ${formatUsdCompact(builder.totalVolume)}`, `Share ${formatPercent(builder.builderShare)}`]} />
-          <p className="mt-2 text-[11px] font-bold text-[#6b837e]">{formatUsdCompact(builder.totalVolume)} 路由成交量</p>
+          <p className="mt-2 text-[11px] font-medium text-[color:var(--text-mute)]">{formatUsdCompact(builder.totalVolume)} routed volume</p>
         </div>
       ))}
     </div>
@@ -337,10 +337,10 @@ function TopBuilders({ builders }: { builders: Hip3BuilderRank[] }) {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <section className="rounded-[10px] border border-[#0e3f3a22] bg-[#f8fffc]/88 p-6 text-[#063934]">
-      <p className="text-[12px] font-black uppercase text-[#0b9482]">HIP-3 Dashboard</p>
-      <h2 className="mt-2 text-[24px] font-black">暂时无法加载 HIP-3 数据</h2>
-      <p className="mt-2 text-[13px] font-bold text-[#66817c]">{message}</p>
+    <section className="ui-card p-6">
+      <p className="eyebrow">HIP-3 Dashboard</p>
+      <h2 className="mt-2 text-[24px] font-semibold text-[color:var(--text)]">暂时无法加载 HIP-3 数据</h2>
+      <p className="mt-2 text-[13px] font-medium text-[color:var(--text-mute)]">{message}</p>
     </section>
   );
 }
@@ -351,12 +351,15 @@ export function Hip3Dashboard({ data, error }: { data: Hip3DashboardData | null;
   }
 
   return (
-    <div className="space-y-4 text-[#063934]">
-      <section className="rounded-[10px] border border-[#0e3f3a22] bg-[linear-gradient(135deg,#ffffffd9,#e8fbf5)] p-5 shadow-[0_18px_48px_rgba(7,43,40,0.08)] sm:p-6">
-        <p className="text-[12px] font-black uppercase tracking-normal text-[#0a8f7d]">Hyperliquid 数据看板</p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-4 text-[color:var(--text)]">
+      <section className="ui-card p-5 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-[28px] font-black leading-tight text-[#052c28] sm:text-[34px]">HIP-3 生态总览</h1>
+            <p className="eyebrow">Hyperliquid dashboard</p>
+            <h1 className="mt-2 text-[30px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--text)] sm:text-[36px]">HIP-3 生态总览</h1>
+            <p className="mt-2 max-w-[620px] text-[13px] font-medium leading-6 text-[color:var(--text-mute)]">
+              聚合 HIP-3 DEX 成交、未平仓量、市场排名和 Builder 路由数据。
+            </p>
           </div>
           <RefreshCountdown cacheExpiresAt={data.cacheExpiresAt} />
         </div>
@@ -380,9 +383,9 @@ export function Hip3Dashboard({ data, error }: { data: Hip3DashboardData | null;
         </ChartFrame>
 
         <ChartFrame subtitle="所有 HIP-3 DEX 的美元计价未平仓量变化。" title="HIP-3 未平仓量">
-          <div className="mb-2 flex items-baseline gap-3">
-            <span className="font-mono text-[26px] font-black text-[#063934]">{formatUsdCompact(data.overview.totalOi)}</span>
-            <span className="text-[12px] font-black text-[#0a8f7d]">{formatUsdCompact(data.builderTotals.volume30d)} 30 日 Builder 成交量</span>
+          <div className="mb-2 flex flex-wrap items-baseline gap-3">
+            <span className="num text-[26px] font-semibold text-[color:var(--text)]">{formatUsdCompact(data.overview.totalOi)}</span>
+            <span className="text-[12px] font-semibold text-[color:var(--mint)]">{formatUsdCompact(data.builderTotals.volume30d)} 30 日 Builder 成交量</span>
           </div>
           <AreaChart timeSeries={data.dailyOi} />
         </ChartFrame>
@@ -400,7 +403,7 @@ export function Hip3Dashboard({ data, error }: { data: Hip3DashboardData | null;
         </ChartFrame>
       </section>
 
-      <p className="text-[11px] font-bold text-[#6b837e]">数据来源：{data.source}。</p>
+      <p className="text-[11px] font-medium text-[color:var(--text-mute)]">数据来源：{data.source}</p>
     </div>
   );
 }

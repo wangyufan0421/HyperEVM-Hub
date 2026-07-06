@@ -1,7 +1,9 @@
-﻿import { HomeMarketSection } from "@/components/home-market-section/home-market-section";
+import { HomeMarketSection } from "@/components/home-market-section/home-market-section";
+import { DexChainRankingCard } from "@/components/home-market-section/dex-chain-ranking-card";
 import { HomeSearchForm } from "@/components/home-search-form";
-import { SiteSidebar } from "@/components/site-sidebar";
+import { SiteTopNav } from "@/components/site-top-nav";
 import { getHyperEvmEcosystemMetrics } from "@/lib/defillama-ecosystem";
+import { getHomeHipMetrics } from "@/lib/home-hip-metrics";
 import { isHypeRange, type HypeRange } from "@/lib/hype-market";
 import { getCategoryCounts, type DirectoryProject } from "@/lib/project-directory";
 import { getHypeMarketData } from "@/lib/hype-market-service";
@@ -14,7 +16,12 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-function toDirectoryProject(project: Awaited<ReturnType<typeof listPublicProjects>>[number]): DirectoryProject {
+type HomeProject = DirectoryProject & {
+  isFeatured: boolean;
+  featuredOrder: number | null;
+};
+
+function toDirectoryProject(project: Awaited<ReturnType<typeof listPublicProjects>>[number]): HomeProject {
   return {
     id: project.id,
     name: project.name,
@@ -31,7 +38,34 @@ function toDirectoryProject(project: Awaited<ReturnType<typeof listPublicProject
     docsUrl: project.docsUrl,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
+    isFeatured: project.isFeatured,
+    featuredOrder: project.featuredOrder,
   };
+}
+
+function formatCompactUsd(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "--";
+  return Intl.NumberFormat("en-US", {
+    compactDisplay: "short",
+    currency: "USD",
+    maximumFractionDigits: 2,
+    notation: "compact",
+    style: "currency",
+  }).format(value);
+}
+
+function formatUsd(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "--";
+  return `$${value.toLocaleString("en-US", { maximumFractionDigits: 3, minimumFractionDigits: 3 })}`;
+}
+
+function StatTile({ label, value }: { label: string; value: string; helper?: string }) {
+  return (
+    <div className="ui-card-quiet px-4 py-3">
+      <p className="eyebrow">{label}</p>
+      <p className="num mt-2 text-[24px] font-semibold leading-none text-[color:var(--text)]">{value}</p>
+    </div>
+  );
 }
 
 export default async function Home({
@@ -48,118 +82,125 @@ export default async function Home({
   if (isHypeRange(requestedRange)) {
     selectedHypeRange = requestedRange;
   }
+
   const dbProjects = await listPublicProjects();
   const projects = dbProjects.map(toDirectoryProject);
-
   const categoryCounts = getCategoryCounts(projects);
   const sidebarCategories = buildSidebarCategories(categoryCounts);
   const siteSettings = await createSiteSettingsService(prisma).getSettings();
-  const [initialHypeMarketData, ecosystemMetrics] = await Promise.all([
+  const [initialHypeMarketData, ecosystemMetrics, hipMetrics] = await Promise.all([
     getHypeMarketData(selectedHypeRange).catch(() => null),
     getHyperEvmEcosystemMetrics().catch(() => null),
+    getHomeHipMetrics().catch(() => null),
   ]);
   const brand = resolveSidebarBrand({
     siteName: siteSettings.siteName,
     sidebarLogoFile: siteSettings.sidebarLogoFile ?? null,
     sidebarLogoUrl: siteSettings.sidebarLogoUrl ?? null,
   });
+  const configuredFeaturedProjects = projects
+    .filter((project) => project.isFeatured)
+    .sort((a, b) => {
+      const orderA = a.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.name.localeCompare(b.name);
+    })
+    .slice(0, 6);
+  const featuredProjects = configuredFeaturedProjects.length > 0 ? configuredFeaturedProjects : projects.slice(0, 6);
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f7fffc_0%,#eefbf8_100%)] text-[#072b28] md:flex">
-      <SiteSidebar
-        activeAll={false}
-        activeCategorySlug={null}
-        brand={brand}
-        categories={sidebarCategories}
-        totalCount={projects.length}
-      />
+    <main className="app-shell pb-28">
+      <SiteTopNav activeHref="/" brand={brand} />
 
-      <section className="min-w-0 flex-1 p-4 sm:p-6 lg:p-7">
-        <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <HomeSearchForm />
-
-          <div className="flex flex-wrap gap-2 text-[13px] font-bold text-[#335650]">
-            <span className="rounded-full border border-[#06393424] bg-white/70 px-3 py-2">
-              已收录 {projects.length} 个项目
-            </span>
-            <span className="rounded-full border border-[#06393424] bg-white/70 px-3 py-2">
-              覆盖 {sidebarCategories.length} 个生态分类
-            </span>
-          </div>
-        </div>
-
-        <section
-          className="relative min-h-[470px] overflow-hidden rounded-[30px] border border-[#09b99c38] shadow-[0_26px_80px_rgba(0,108,116,0.18),inset_0_0_0_1px_rgba(255,255,255,0.45)]"
-          style={{
-            backgroundImage: "url('/hyper-map.png')",
-            backgroundPosition: "center bottom",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-          }}
-        >
-          <div className="flex min-h-[470px] w-full items-center px-7 py-8 sm:px-12">
-            <div className="w-full max-w-[600px] rounded-[28px] border border-[#09b99c33] bg-[#f6fffb]/85 px-8 py-10 shadow-[0_22px_70px_rgba(4,65,58,0.18),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-md sm:px-11 sm:py-11">
-              <div className="mb-4 w-fit rounded-full border border-[#09b99c40] bg-white/75 px-3 py-1.5 text-[13px] font-black text-[#0c7468]">
-                HyperEVM 生态目录
-              </div>
-              <h1 className="whitespace-nowrap text-[38px] font-black leading-[0.96] tracking-normal text-[#062d29] sm:text-[50px] lg:text-[56px]">
+      <section className="app-container mt-3">
+        <div className="ui-card overflow-hidden p-5 sm:p-6">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(560px,0.95fr)] lg:items-center">
+            <div>
+              <p className="eyebrow">HyperEVM ecosystem intelligence</p>
+              <h1 className="mt-2 max-w-[780px] text-[34px] font-semibold leading-[1.03] tracking-[-0.02em] text-[color:var(--text)] sm:text-[46px]">
                 HyperEVM Hub
               </h1>
-              <p className="mt-5 text-[17px] font-bold leading-8 text-[#315f59]">
-                探索 HyperEVM 生态中的每一块土壤
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-[#06393429] bg-[#06342f] px-5 text-[14px] font-black text-[#effffb] shadow-[0_12px_26px_rgba(6,52,47,0.2)] transition hover:-translate-y-0.5 hover:bg-[#042b27]"
-                  href="/projects"
-                >
-                  浏览全部项目
-                </Link>
-                <a
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-[#06393429] bg-white/80 px-5 text-[14px] font-black text-[#06342f] transition hover:-translate-y-0.5 hover:bg-white"
-                  href="#market-overview"
-                >
-                  查看实时数据
-                </a>
-              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <StatTile helper="Public ecosystem entries" label="Projects" value={String(projects.length)} />
+              <StatTile helper="Tracked categories" label="Categories" value={String(sidebarCategories.length)} />
+              <StatTile helper="DefiLlama 24h app fees" label="App fees" value={formatCompactUsd(ecosystemMetrics?.appFees24h)} />
+              <StatTile helper={`${selectedHypeRange} live market`} label="$HYPE" value={formatUsd(initialHypeMarketData?.price)} />
+              <StatTile helper="Flowscan HIP-3 daily volume" label="HIP-3 24H Volume" value={formatCompactUsd(hipMetrics?.hip3Volume24h)} />
+              <StatTile helper="Hyperliquid outcome token volume" label="HIP-4 24H Volume" value={formatCompactUsd(hipMetrics?.hip4Volume24h)} />
             </div>
           </div>
-        </section>
-
-        <div id="market-overview">
-          <HomeMarketSection
-            ecosystemMetrics={ecosystemMetrics}
-            initialHypeMarketData={initialHypeMarketData}
-            selectedHypeRange={selectedHypeRange}
-          />
-        </div>
-
-        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 sm:bottom-6 sm:right-6">
-          <a
-            aria-label="Open HyperEVM CN on X"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-[#0639341f] bg-white/88 text-[#062d29] shadow-[0_14px_34px_rgba(4,65,58,0.18)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white"
-            href="https://x.com/HyperEVM_CN"
-            rel="noreferrer"
-            target="_blank"
-          >
-            <svg aria-hidden="true" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.9 2H22l-6.77 7.74L23.2 22h-6.27l-4.9-6.4L6.43 22H3.31l7.24-8.27L1 2h6.43l4.43 5.84L18.9 2Zm-1.1 18h1.73L6.49 3.9H4.63L17.8 20Z" />
-            </svg>
-          </a>
-
-          <a
-            aria-label="Open Hyperliquid Builder Telegram"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-[#0639341f] bg-white/88 text-[#0a8f7d] shadow-[0_14px_34px_rgba(4,65,58,0.18)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white"
-            href="https://t.me/HyperliquidBuilder"
-            rel="noreferrer"
-            target="_blank"
-          >
-            <svg aria-hidden="true" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M21.5 4.5 18.4 19c-.23 1.03-.84 1.29-1.7.8l-4.7-3.47-2.27 2.2c-.25.25-.46.46-.95.46l.34-4.82 8.77-7.93c.38-.34-.08-.53-.58-.2L6.47 13.2 1.9 11.77c-1-.31-1.02-1 .21-1.48L19.9 3.4c.82-.3 1.53.2 1.6 1.1Z" />
-            </svg>
-          </a>
         </div>
       </section>
+
+      <section className="app-container" id="market-overview">
+        <HomeMarketSection
+          ecosystemMetrics={ecosystemMetrics}
+          initialHypeMarketData={initialHypeMarketData}
+          selectedHypeRange={selectedHypeRange}
+        />
+      </section>
+
+      <section className="app-container mt-4">
+        <DexChainRankingCard metrics={ecosystemMetrics} />
+      </section>
+
+      <section className="app-container mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="ui-card p-5 sm:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="eyebrow">项目目录</p>
+              <h2 className="mt-1 text-[20px] font-semibold text-[color:var(--text)]">精选生态项目</h2>
+            </div>
+            <Link className="ui-button" href="/projects">
+              查看全部
+            </Link>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {featuredProjects.map((project) => (
+              <Link
+                className="ui-card-quiet group flex min-h-[86px] items-center gap-3 px-3 py-3 transition hover:border-[color:var(--line-mint)] hover:bg-white/80"
+                href={`/projects/${project.slug}`}
+                key={project.id}
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-[12px] font-semibold text-[color:var(--mint)]">
+                  {project.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-semibold text-[color:var(--text)] group-hover:text-[color:var(--mint)]">
+                    {project.name}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-[12px] font-medium leading-5 text-[color:var(--text-mute)]">
+                    {project.shortDescription}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="ui-card p-5 sm:p-6">
+          <h2 className="text-[20px] font-semibold text-[color:var(--text)]">目录</h2>
+          <div className="mt-4 grid gap-2">
+            {sidebarCategories.slice(0, 7).map((item) => (
+              <Link
+                className="flex h-10 items-center justify-between rounded-[9px] border border-[color:var(--line)] bg-white/52 px-3 text-[13px] font-semibold text-[color:var(--text-soft)] transition hover:border-[color:var(--line-mint)] hover:bg-white/78"
+                href={`/categories/${item.slug}`}
+                key={item.category}
+              >
+                <span>{item.label}</span>
+                <span className="num text-[12px] text-[color:var(--text-dim)]">{item.count}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="fixed inset-x-0 bottom-4 z-50 px-4">
+        <HomeSearchForm />
+      </div>
     </main>
   );
 }

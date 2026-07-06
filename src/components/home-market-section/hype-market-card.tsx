@@ -1,6 +1,9 @@
-﻿import { HYPE_RANGES, type HypeCandle, type HypeRange } from "@/lib/hype-market";
+"use client";
+
+import { formatHypeCandleTooltip, HYPE_RANGES, type HypeCandle, type HypeRange } from "@/lib/hype-market";
 import type { HypeMarketData } from "@/lib/hype-market-service";
 import Script from "next/script";
+import { useState } from "react";
 
 function formatUsd(value: number | null | undefined, digits = 3) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -69,271 +72,89 @@ function livePriceScript(initialPrice: number | null) {
 `;
 }
 
-function draggableChartScript() {
-  return `
-(() => {
-  const scroller = document.getElementById("hype-candle-scroll");
-  if (!scroller || scroller.__hypeDragReady) return;
-  scroller.__hypeDragReady = true;
-
-  const scrollToLatest = () => {
-    scroller.scrollLeft = scroller.scrollWidth - scroller.clientWidth;
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", scrollToLatest, { once: true });
-  } else {
-    scrollToLatest();
-  }
-
-  let isDragging = false;
-  let startX = 0;
-  let startScrollLeft = 0;
-
-  scroller.addEventListener("pointerdown", (event) => {
-    isDragging = true;
-    startX = event.clientX;
-    startScrollLeft = scroller.scrollLeft;
-    scroller.classList.add("is-dragging");
-    scroller.setPointerCapture?.(event.pointerId);
-  });
-
-  scroller.addEventListener("pointermove", (event) => {
-    if (!isDragging) return;
-    event.preventDefault();
-    scroller.scrollLeft = startScrollLeft - (event.clientX - startX);
-  });
-
-  const stopDrag = (event) => {
-    if (!isDragging) return;
-    isDragging = false;
-    scroller.classList.remove("is-dragging");
-    scroller.releasePointerCapture?.(event.pointerId);
-  };
-
-  scroller.addEventListener("pointerup", stopDrag);
-  scroller.addEventListener("pointercancel", stopDrag);
-  scroller.addEventListener("pointerleave", stopDrag);
-})();
-`;
-}
-
 function rangeHref(range: HypeRange) {
   return `/?hypeRange=${encodeURIComponent(range)}#market-overview`;
 }
 
-function formatClockLabel(date: Date) {
-  return date.toLocaleTimeString("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
+function TrendChart({ candles }: { candles: HypeCandle[] }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-function formatDayLabel(date: Date) {
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
-}
-
-function formatMonthLabel(date: Date) {
-  return `${date.getMonth() + 1}月`;
-}
-
-function formatYearLabel(date: Date) {
-  return String(date.getFullYear());
-}
-
-function formatTimeAxisLabel(timestamp: number, range: HypeRange, previousTimestamp?: number) {
-  const date = new Date(timestamp * 1000);
-  const previousDate = typeof previousTimestamp === "number" ? new Date(previousTimestamp * 1000) : null;
-  const isNewDay =
-    !previousDate ||
-    date.getFullYear() !== previousDate.getFullYear() ||
-    date.getMonth() !== previousDate.getMonth() ||
-    date.getDate() !== previousDate.getDate();
-  const isNewMonth =
-    !previousDate || date.getFullYear() !== previousDate.getFullYear() || date.getMonth() !== previousDate.getMonth();
-  const isNewYear = !previousDate || date.getFullYear() !== previousDate.getFullYear();
-
-  if (range === "15m" || range === "1h") {
-    return isNewDay ? formatDayLabel(date) : formatClockLabel(date);
-  }
-
-  if (range === "1D") {
-    return isNewMonth ? formatMonthLabel(date) : formatDayLabel(date);
-  }
-
-  return isNewYear ? formatYearLabel(date) : formatMonthLabel(date);
-}
-
-function shouldShowTimeAxisTick(candle: HypeCandle, index: number, range: HypeRange) {
-  const date = new Date(candle.time * 1000);
-  const minute = date.getMinutes();
-  const hour = date.getHours();
-  const day = date.getDate();
-  const month = date.getMonth();
-
-  if (index === 0) {
-    return true;
-  }
-
-  if (range === "15m") {
-    return minute === 0 && hour % 3 === 0;
-  }
-
-  if (range === "1h") {
-    return hour === 0 || hour === 12;
-  }
-
-  if (range === "1D") {
-    return day === 1 || day === 15;
-  }
-
-  return month === 0 || month === 3 || month === 6 || month === 9;
-}
-
-function CandleChart({ candles, selectedRange }: { candles: HypeCandle[]; selectedRange: HypeRange }) {
   if (candles.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center text-[13px] font-black text-[#5f7d77]">
-        No HYPE candle data available.
+      <div className="flex h-full items-center justify-center text-[13px] font-semibold text-[color:var(--text-mute)]">
+        No HYPE trend data available.
       </div>
     );
   }
 
-  const candleSpacingByRange: Record<HypeRange, number> = {
-    "15m": 8,
-    "1h": 7,
-    "1D": 8,
-  };
-  const minWidthByRange: Record<HypeRange, number> = {
-    "15m": 900,
-    "1h": 900,
-    "1D": 900,
-  };
-  const minWidth = minWidthByRange[selectedRange];
-  const candleSpacing = candleSpacingByRange[selectedRange];
-  const width = Math.max(minWidth, Math.round(candles.length * candleSpacing + 120));
-  const height = 330;
-  const padding = { top: 18, right: 58, bottom: 34, left: 18 };
-  const plotWidth = width - padding.left - padding.right;
-  const plotHeight = height - padding.top - padding.bottom;
-  const high = Math.max(...candles.map((candle) => candle.high));
-  const low = Math.min(...candles.map((candle) => candle.low));
+  const pointsSource = candles.map((candle) => candle.close);
+  const width = 720;
+  const height = 250;
+  const padding = { top: 14, right: 14, bottom: 26, left: 14 };
+  const innerWidth = width - padding.left - padding.right;
+  const innerHeight = height - padding.top - padding.bottom;
+  const high = Math.max(...pointsSource);
+  const low = Math.min(...pointsSource);
   const span = Math.max(high - low, 0.0001);
-  const xStep = plotWidth / Math.max(candles.length - 1, 1);
-  const bodyWidth = Math.max(3, Math.min(8, xStep * 0.72));
-  const gridLines = [0, 0.25, 0.5, 0.75, 1];
-  const xFor = (index: number) => padding.left + index * xStep;
-  const yFor = (price: number) => padding.top + ((high - price) / span) * plotHeight;
-  const formatAxis = (value: number) => value.toFixed(value >= 100 ? 1 : 2);
-  const timeTicks = candles
-    .map((candle, candleIndex) => ({ candle, candleIndex }))
-    .filter(({ candle, candleIndex }) => shouldShowTimeAxisTick(candle, candleIndex, selectedRange))
-    .map(({ candle, candleIndex }, tickIndex, ticks) => ({
-      candleIndex,
-      label: formatTimeAxisLabel(candle.time, selectedRange, ticks[tickIndex - 1]?.candle.time),
-      x: xFor(candleIndex),
-    }));
+  const points = pointsSource.map((value, index) => {
+    const x = padding.left + (pointsSource.length <= 1 ? 0 : (index / (pointsSource.length - 1)) * innerWidth);
+    const y = padding.top + innerHeight - ((value - low) / span) * innerHeight;
+    return { candle: candles[index], x, y, value };
+  });
+  const line = points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
+  const area =
+    points.length > 0
+      ? `M ${points[0].x.toFixed(2)} ${padding.top + innerHeight} L ${line} L ${points[points.length - 1].x.toFixed(2)} ${padding.top + innerHeight} Z`
+      : "";
+  const latest = points[points.length - 1];
+  const active = activeIndex === null ? null : points[activeIndex];
+  const tooltip = active?.candle ? formatHypeCandleTooltip(active.candle) : null;
+  const tooltipWidth = 210;
+  const tooltipHeight = 62;
+  const tooltipX = active ? Math.min(Math.max(active.x - tooltipWidth / 2, 8), width - tooltipWidth - 8) : 0;
+  const tooltipY = active ? Math.max(8, active.y - tooltipHeight - 14) : 0;
+  const hitWidth = Math.max(8, innerWidth / Math.max(points.length, 1));
 
   return (
-    <>
-      <div
-        className="h-full cursor-grab overflow-x-auto overflow-y-hidden select-none [-ms-overflow-style:none] [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
-        id="hype-candle-scroll"
-      >
-        <svg
-          aria-label="HYPE candlestick chart"
-          className="h-full max-w-none"
-          preserveAspectRatio="none"
-          role="img"
-          style={{ width }}
-          viewBox={`0 0 ${width} ${height}`}
-        >
-          <rect fill="#ecfbf7" height={height} width={width} />
-          {gridLines.map((ratio) => {
-            const y = padding.top + ratio * plotHeight;
-            const value = high - ratio * span;
-
-            return (
-              <g key={ratio}>
-                <line
-                  stroke="rgba(20,92,82,0.13)"
-                  strokeWidth="1"
-                  x1={padding.left}
-                  x2={width - padding.right}
-                  y1={y}
-                  y2={y}
-                />
-                <text
-                  fill="#54746e"
-                  fontFamily="monospace"
-                  fontSize="12"
-                  fontWeight="700"
-                  x={width - padding.right + 12}
-                  y={y + 4}
-                >
-                  {formatAxis(value)}
-                </text>
-              </g>
-            );
-          })}
-
-          {candles.map((candle, index) => {
-            const x = xFor(index);
-            const openY = yFor(candle.open);
-            const closeY = yFor(candle.close);
-            const highY = yFor(candle.high);
-            const lowY = yFor(candle.low);
-            const isUp = candle.close >= candle.open;
-            const color = isUp ? "#00bfae" : "#ef514c";
-            const bodyY = Math.min(openY, closeY);
-            const bodyHeight = Math.max(1.5, Math.abs(closeY - openY));
-
-            return (
-              <g key={`${candle.time}-${index}`}>
-                <line stroke={color} strokeLinecap="round" strokeWidth="1.6" x1={x} x2={x} y1={highY} y2={lowY} />
-                <rect fill={color} height={bodyHeight} rx="0.8" width={bodyWidth} x={x - bodyWidth / 2} y={bodyY} />
-              </g>
-            );
-          })}
-
-          <line
-            stroke="rgba(20,92,82,0.18)"
-            strokeWidth="1"
-            x1={padding.left}
-            x2={width - padding.right}
-            y1={height - padding.bottom + 8}
-            y2={height - padding.bottom + 8}
-          />
-          {timeTicks.map((tick, index) => (
-            <g key={`${tick.candleIndex}-${tick.label}`}>
-              <line
-                stroke="rgba(20,92,82,0.24)"
-                strokeWidth="1"
-                x1={tick.x}
-                x2={tick.x}
-                y1={height - padding.bottom + 8}
-                y2={height - padding.bottom + 13}
-              />
-              <text
-                fill="#4d716b"
-                fontFamily="monospace"
-                fontSize="12"
-                fontWeight="800"
-                textAnchor={index === 0 ? "start" : index === timeTicks.length - 1 ? "end" : "middle"}
-                x={tick.x}
-                y={height - 9}
-              >
-                {tick.label}
-              </text>
-            </g>
-          ))}
-        </svg>
-      </div>
-      <Script id="hype-candle-drag" strategy="afterInteractive">
-        {draggableChartScript()}
-      </Script>
-    </>
+    <svg aria-label="HYPE trend line chart" className="h-full w-full overflow-visible" onMouseLeave={() => setActiveIndex(null)} preserveAspectRatio="none" role="img" viewBox={`0 0 ${width} ${height}`}>
+      <defs>
+        <linearGradient id="hype-area" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="rgba(21,191,169,0.24)" />
+          <stop offset="100%" stopColor="rgba(21,191,169,0)" />
+        </linearGradient>
+      </defs>
+      {[0.25, 0.5, 0.75].map((tick) => {
+        const y = padding.top + tick * innerHeight;
+        return <line key={tick} stroke="rgba(8,54,49,0.10)" strokeDasharray="4 8" strokeWidth="1" x1={padding.left} x2={width - padding.right} y1={y} y2={y} />;
+      })}
+      <path d={area} fill="url(#hype-area)" />
+      <polyline fill="none" points={line} stroke="var(--mint)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" />
+      {latest ? <circle cx={latest.x} cy={latest.y} fill="white" r="4" stroke="var(--mint)" strokeWidth="2.2" /> : null}
+      {active && tooltip ? (
+        <g pointerEvents="none">
+          <line stroke="rgba(8,54,49,0.18)" strokeDasharray="4 6" strokeWidth="1.2" x1={active.x} x2={active.x} y1={padding.top} y2={padding.top + innerHeight} />
+          <circle cx={active.x} cy={active.y} fill="#062d29" r="4.5" stroke="var(--mint)" strokeWidth="2.4" />
+          <rect fill="#062d29" height={tooltipHeight} opacity="0.96" rx="9" width={tooltipWidth} x={tooltipX} y={tooltipY} />
+          <text fill="#b8efe4" fontFamily="monospace" fontSize="13" fontWeight="800" x={tooltipX + 14} y={tooltipY + 23}>
+            {tooltip.date}
+          </text>
+          <text fill="#ffffff" fontFamily="monospace" fontSize="17" fontWeight="900" x={tooltipX + 14} y={tooltipY + 47}>
+            {tooltip.price}
+          </text>
+        </g>
+      ) : null}
+      {points.map((point, index) => (
+        <rect
+          fill="transparent"
+          height={innerHeight}
+          key={`hype-hover-${point.candle?.time ?? index}`}
+          onMouseEnter={() => setActiveIndex(index)}
+          width={hitWidth}
+          x={point.x - hitWidth / 2}
+          y={padding.top}
+        />
+      ))}
+    </svg>
   );
 }
 
@@ -348,48 +169,41 @@ export function HypeMarketCard({
   const isPositive = (stats?.changePercent ?? 0) >= 0;
 
   return (
-    <section className="min-h-[420px] overflow-hidden rounded-[8px] border border-[#0e3f3a24] bg-[#f1fffb]/88 text-[#063934] shadow-[0_18px_50px_rgba(7,43,40,0.10)] backdrop-blur-md">
-      <div className="flex flex-col gap-4 p-5 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[13px] font-black uppercase tracking-normal text-[#0a8f7d]">$HYPE</p>
-            <div className="mt-1 flex flex-wrap items-center gap-3">
-              <h2 className="font-mono text-[34px] font-black leading-none tracking-normal text-[#062d29]">
-                <span id="hype-live-price" suppressHydrationWarning>
-                  {formatUsd(initialData?.price ?? null)}
-                </span>
-              </h2>
-              <Script id="hype-live-price-updater" strategy="afterInteractive">
-                {livePriceScript(initialData?.price ?? null)}
-              </Script>
-              <span
-                className={`rounded-[4px] border px-2.5 py-1 text-[12px] font-black ${
-                  isPositive
-                    ? "border-[#00bfae44] bg-[#dcfff7] text-[#007e72]"
-                    : "border-[#ef514c44] bg-[#fff0ee] text-[#c93131]"
-                }`}
-              >
-                {formatPercent(stats?.changePercent)} · {selectedRange}
+    <section className="ui-card min-h-[390px] overflow-hidden p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="eyebrow">$HYPE market</p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <h2 className="num text-[34px] font-semibold leading-none tracking-[-0.02em] text-[color:var(--text)]">
+              <span id="hype-live-price" suppressHydrationWarning>
+                {formatUsd(initialData?.price ?? null)}
               </span>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-3 font-mono text-[12px] font-bold text-[#58726d]">
-              <span>High {formatUsd(stats?.high)}</span>
-              <span>Low {formatUsd(stats?.low)}</span>
-              <span>Vol {formatCompact(stats?.volume)}</span>
-            </div>
+            </h2>
+            <Script id="hype-live-price-updater" strategy="afterInteractive">
+              {livePriceScript(initialData?.price ?? null)}
+            </Script>
+            <span
+              className={`rounded-[7px] border px-2.5 py-1 text-[12px] font-semibold ${
+                isPositive
+                  ? "border-emerald-300/70 bg-emerald-50 text-emerald-700"
+                  : "border-red-300/70 bg-red-50 text-red-600"
+              }`}
+            >
+              {formatPercent(stats?.changePercent)} · {selectedRange}
+            </span>
           </div>
-
+          <div className="mt-3 flex flex-wrap gap-3 text-[12px] font-semibold text-[color:var(--text-mute)]">
+            <span>High <span className="num">{formatUsd(stats?.high)}</span></span>
+            <span>Low <span className="num">{formatUsd(stats?.low)}</span></span>
+            <span>Vol <span className="num">{formatCompact(stats?.volume)}</span></span>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
           {HYPE_RANGES.map((range) => (
             <a
               key={range}
-              className={`inline-flex h-8 min-w-12 items-center justify-center rounded-[4px] border px-3 text-[12px] font-black transition ${
-                selectedRange === range
-                  ? "border-[#0a8f7d66] bg-[#0a6f64] text-white shadow-[0_8px_20px_rgba(10,111,100,0.18)]"
-                  : "border-[#0e3f3a24] bg-white/72 text-[#4f6f69] hover:border-[#0a8f7d55] hover:text-[#063934]"
-              }`}
+              className={`ui-button h-8 min-w-12 px-3 text-[12px] ${selectedRange === range ? "ui-button-active" : ""}`}
               href={rangeHref(range)}
             >
               {range}
@@ -398,8 +212,8 @@ export function HypeMarketCard({
         </div>
       </div>
 
-      <div className="relative h-[300px] px-2 pb-4 sm:h-[330px] sm:px-5">
-        <CandleChart candles={initialData?.candles ?? []} selectedRange={selectedRange} />
+      <div className="mt-5 h-[250px] rounded-[10px] border border-[color:var(--line)] bg-white/45 p-3">
+        <TrendChart candles={initialData?.candles ?? []} />
       </div>
     </section>
   );

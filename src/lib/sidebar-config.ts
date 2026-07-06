@@ -8,6 +8,13 @@ export const DASHBOARD_NAV_ITEMS = [
   { label: "HIP-4 数据面板", href: "/dashboard/hip-4" },
 ] as const;
 
+export const PROJECT_NAV_ITEMS = [
+  { label: "全部项目", href: "/projects" },
+  { label: "Project X", href: "/projects/prjx" },
+  { label: "tradeXYZ", href: "/projects/tradexyz" },
+  { label: "Liminal", href: "/projects/liminal" },
+] as const;
+
 export const SIDEBAR_CATEGORIES = [
   "DeFi",
   "DEX",

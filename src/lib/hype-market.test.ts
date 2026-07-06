@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getHypeRangeConfig, normalizeHyperliquidCandles } from "./hype-market";
+import { formatHypeCandleTooltip, getHypeRangeConfig, normalizeHyperliquidCandles } from "./hype-market";
 
 describe("getHypeRangeConfig", () => {
   it("maps homepage range buttons to Hyperliquid intervals and lookback windows", () => {
@@ -46,5 +46,24 @@ describe("normalizeHyperliquidCandles", () => {
         volume: 1_257_812.34,
       },
     ]);
+  });
+});
+
+describe("formatHypeCandleTooltip", () => {
+  it("formats a candle date and close price for chart hover", () => {
+    assert.deepEqual(
+      formatHypeCandleTooltip({
+        time: 1_779_631_200,
+        open: 63.083,
+        high: 63.531,
+        low: 61.556,
+        close: 62.802,
+        volume: 1_257_812.34,
+      }),
+      {
+        date: "May 24, 2026, 14:00 UTC",
+        price: "$62.802",
+      },
+    );
   });
 });

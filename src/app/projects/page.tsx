@@ -1,12 +1,13 @@
+import { ProjectCard } from "@/components/project-card";
+import { ProjectCategoryNav } from "@/components/project-category-nav";
+import { SimpleSearchBox } from "@/components/simple-search-box";
+import { SiteTopNav } from "@/components/site-top-nav";
 import { getCategoryCounts, sortDirectoryProjects, type DirectoryProject } from "@/lib/project-directory";
-import { listPublicProjects } from "@/lib/public-projects";
 import { prisma } from "@/lib/prisma";
+import { listPublicProjects } from "@/lib/public-projects";
+import { buildSidebarCategories } from "@/lib/sidebar-categories";
 import { resolveSidebarBrand } from "@/lib/site-brand";
 import { createSiteSettingsService } from "@/lib/site-settings-service";
-import { buildSidebarCategories } from "@/lib/sidebar-categories";
-import { ProjectCard } from "@/components/project-card";
-import { SimpleSearchBox } from "@/components/simple-search-box";
-import { SiteSidebar } from "@/components/site-sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +48,9 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     }),
     "name-asc",
   );
-
   const categoryCounts = getCategoryCounts(allProjects);
   const sidebarCategories = buildSidebarCategories(categoryCounts);
+
   const siteSettings = await createSiteSettingsService(prisma).getSettings();
   const brand = resolveSidebarBrand({
     siteName: siteSettings.siteName,
@@ -58,26 +59,38 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   });
 
   return (
-    <main className="min-h-screen bg-zinc-50 md:flex">
-      <SiteSidebar activeCategorySlug={null} activeAll={true} brand={brand} categories={sidebarCategories} totalCount={allProjects.length} />
+    <main className="app-shell pb-12">
+      <SiteTopNav activeHref="/projects" brand={brand} />
 
-      <section className="flex-1 space-y-4 p-4 sm:p-6">
-        <header className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4">
-          <h1 className="text-lg font-semibold text-zinc-900">全部项目</h1>
-          <SimpleSearchBox action="/projects" defaultValue={query} maxWidthClassName="max-w-[360px]" placeholder="搜索项目名称" />
+      <section className="app-container mt-4 space-y-4">
+        <header className="ui-card p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="eyebrow">Project directory</p>
+              <h1 className="mt-2 text-[28px] font-semibold leading-tight text-[color:var(--text)]">全部项目</h1>
+              <p className="mt-2 text-[13px] font-medium text-[color:var(--text-mute)]">
+                浏览 HyperEVM 生态项目、协议、钱包、基础设施和 HIP 实验。
+              </p>
+            </div>
+            <SimpleSearchBox action="/projects" defaultValue={query} maxWidthClassName="w-full max-w-[390px]" placeholder="搜索项目名称" />
+          </div>
         </header>
 
-        {projects.length > 0 ? (
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </ul>
-        ) : (
-          <section className="rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-600">
+        <div className="grid items-start gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
+          <ProjectCategoryNav categories={sidebarCategories} totalCount={allProjects.length} />
+
+          {projects.length > 0 ? (
+            <ul className="grid auto-rows-max items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {projects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </ul>
+          ) : (
+            <section className="ui-card border-dashed p-10 text-center text-sm font-medium text-[color:var(--text-mute)]">
             暂无可展示项目。
           </section>
-        )}
+          )}
+        </div>
       </section>
     </main>
   );

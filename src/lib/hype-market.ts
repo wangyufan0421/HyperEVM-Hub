@@ -67,6 +67,32 @@ export function normalizeHyperliquidCandles(candles: HyperliquidCandle[]): HypeC
     );
 }
 
+export function formatHypeCandleTooltip(candle: HypeCandle) {
+  const date = new Date(candle.time * 1000);
+  const dateParts = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  })
+    .formatToParts(date)
+    .reduce<Record<string, string>>((parts, part) => {
+      parts[part.type] = part.value;
+      return parts;
+    }, {});
+
+  return {
+    date: `${dateParts.month} ${dateParts.day}, ${dateParts.year}, ${dateParts.hour}:${dateParts.minute} UTC`,
+    price: `$${candle.close.toLocaleString("en-US", {
+      maximumFractionDigits: 3,
+      minimumFractionDigits: 3,
+    })}`,
+  };
+}
+
 export function getCandleStats(candles: HypeCandle[]) {
   if (candles.length === 0) {
     return {
