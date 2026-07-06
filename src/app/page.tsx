@@ -12,6 +12,8 @@ import { listPublicProjects } from "@/lib/public-projects";
 import { buildSidebarCategories } from "@/lib/sidebar-categories";
 import { resolveSidebarBrand } from "@/lib/site-brand";
 import { createSiteSettingsService } from "@/lib/site-settings-service";
+import { resolveProjectLogo } from "@/lib/project-rules";
+import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -165,9 +167,13 @@ export default async function Home({
                 href={`/projects/${project.slug}`}
                 key={project.id}
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-[12px] font-semibold text-[color:var(--mint)]">
-                  {project.name.slice(0, 2).toUpperCase()}
-                </div>
+                <Image
+                  alt={`${project.name} logo`}
+                  className="h-10 w-10 shrink-0 rounded-[9px] border border-[color:var(--line)] bg-[#062d29] object-cover"
+                  height={40}
+                  src={resolveProjectLogo({ logoFile: project.logoFile, logoUrl: project.logoUrl })}
+                  width={40}
+                />
                 <div className="min-w-0">
                   <p className="truncate text-[14px] font-semibold text-[color:var(--text)] group-hover:text-[color:var(--mint)]">
                     {project.name}
